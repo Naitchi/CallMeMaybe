@@ -1,24 +1,25 @@
 from llm_sdk import Small_LLM_Model
 
-def get_index_max(logic_ids:list[int]) -> int:
-    max_value = max(logic_ids)
-    rslt = [key for key, elem in enumerate(logic_ids) if max_value == elem]
-    return rslt[0]
+def generate_next_token(llm:Small_LLM_Model ,tokens:list[int]) -> list[int]:
+    possible_token = llm.get_logits_from_input_ids(tokens)
+    max_value = max(possible_token)
+    next_token = [key for key, elem in enumerate(possible_token) if max_value == elem]
+    tokens.append(next_token[0])
+    return tokens
+
+
+def get_functions_json(file_name: str = "functions_definition.json")->str:
+    print(file_name)
 
 
 def main():
     jarvis = Small_LLM_Model()
     tokens = jarvis.encode("Do the calcul: '2+2'? Give me just the result. No explanation. Just the number. The Result is :")
-    print(tokens)
     converted_list = list(tokens[0])
-    print(converted_list)
-    logic_ids = jarvis.get_logits_from_input_ids(converted_list)
-    while max(logic_ids) > 0:
-        converted_list.append(get_index_max(logic_ids))
-        logic_ids = jarvis.get_logits_from_input_ids(converted_list)
-        print(max(logic_ids))
+    get_functions_json()
+    while 1:
+        generate_next_token(jarvis, converted_list)
         print(jarvis.decode(converted_list))
-    print(jarvis.decode(converted_list))
     
 
 main()

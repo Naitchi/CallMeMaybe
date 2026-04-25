@@ -1,0 +1,8 @@
+-/ Faire des fonctions reutilisable, notamment pour recuperer le resultat de la llm
+Se renseigner sur UV
+Faire une fonction pour recuperer les fonctions dans le fichier JSON sans le return 
+Faire le prompt qui va s'addition a celui de l'utilisateur. (donne moi du JSON sort moi la fonction qui colle, etc)
+Faire une fonction pour savoir si il a fini de generer sa reponse: En comptant le nombre de bracket ouverte que fermer 
+parsing sur le fichier definition et prompt pydantic et module JSON
+argparse
+balisage chatlm

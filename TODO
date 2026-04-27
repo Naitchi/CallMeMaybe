@@ -6,3 +6,8 @@ Faire une fonction pour savoir si il a fini de generer sa reponse: En comptant l
 parsing sur le fichier definition et prompt pydantic et module JSON
 argparse
 balisage chatlm
+dans le make je dois creer un dossier output dans data 
+
+quand je prends le max token deja check ce que c'est dans le vocabulaire pour m'assurer que ca fait sens dans du JSON ? 
+
+a la fin tester via venv pour tester les pyproject et que tout soit bien installer (pydantic, json, re)

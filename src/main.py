@@ -2,13 +2,36 @@ from llm_sdk import Small_LLM_Model
 from parsing import is_valid_filename, check_json_functions
 import json
 
-def generate_next_token(llm: Small_LLM_Model, tokens: list[int]) -> list[int]:
+
+def generate_next_token(
+        llm: Small_LLM_Model,
+        tokens: list[int],
+        response_tokens: list[int]
+        ) -> list[int]:
     possible_token = llm.get_logits_from_input_ids(tokens)
     max_value = max(possible_token)
-    print(max_value)
-    next_token = [key for key, elem in enumerate(possible_token) if max_value == elem]
+    next_token = [
+        key for key,
+        elem in enumerate(possible_token)
+        if max_value == elem
+    ]
     tokens.append(next_token[0])
+    response_tokens.append(next_token[0])
     return tokens
+
+
+def check_for_ended_response(llm: Small_LLM_Model, tokens: list[int]) -> bool:
+    response: str = llm.decode(tokens)
+    accolades: list = []
+    for char in response:
+        if char == '[' or char == '{':
+            accolades.append(char)
+        if char == ']' or char == '}':
+            if accolades[-1] == char:
+                accolades.pop(-1)
+    if len(accolades) < 1:
+        return True
+    return False
 
 
 def get_functions_json(filename: str = "functions_definition.json") -> str:
@@ -25,7 +48,10 @@ def get_functions_json(filename: str = "functions_definition.json") -> str:
     except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
         print(e)
 
-def get_prompts_json(filename: str = "function_calling_tests.json") -> list[dict]:
+
+def get_prompts_json(
+        filename: str = "function_calling_tests.json"
+        ) -> list[dict]:
     try:
         is_valid_filename(filename)
         with open(
@@ -36,18 +62,31 @@ def get_prompts_json(filename: str = "function_calling_tests.json") -> list[dict
     except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
         print(e)
 
+
 def create_prompt(prompt: str, available_functions: str) -> str:
     if len(prompt) < 1:
         raise ValueError("Error the prompt cannot be empty")
-    return "".join([
-        "With this prompt: \"", 
-        prompt,
-        "\" Use this list of function: ", 
-        available_functions, 
-        " and return only JSON with prompt (prompt), the name of the function (name) you will use, and the parameters (parameters). The Answer: { \"prompt\": \"",
-        prompt,
-        "\", \"name\": "
-    ])
+    return (
+        "".join([
+            "With this prompt: \"",
+            prompt,
+            "\" Use this list of function: ",
+            available_functions,
+            " and return only JSON with prompt (prompt), the name of the "
+            "function",
+            " (name) you will use, and the parameters (parameters). ",
+            "The Answer: {",
+            " \"prompt\": \"",
+            prompt,
+            "\", \"name\": "
+        ]),
+        "".join([
+            "{",
+            " \"prompt\": \"",
+            prompt,
+            "\", \"name\": "
+        ])
+        )
 
 
 def main():
@@ -56,16 +95,26 @@ def main():
     available_functions = get_functions_json()
     prompts = get_prompts_json()
     jarvis = Small_LLM_Model()
+    response: str = ""
     for user_prompt in prompts:
-        try :
-            prompt:str = create_prompt(user_prompt["prompt"], str(available_functions))
+        try:
+            prompt: str = ""
+            (prompt, response) = create_prompt(
+                user_prompt["prompt"],
+                str(available_functions)
+                )
             tokens = jarvis.encode(prompt)
-            print(tokens)
             converted_list = list(tokens[0])
-            while 1:
+            while check_for_ended_response():
                 generate_next_token(jarvis, converted_list)
                 print(jarvis.decode(converted_list))
-        except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
+        except (
+            FileNotFoundError,
+            FileExistsError,
+            ValueError,
+            Exception
+                )as e:
             print(e)
+
 
 main()

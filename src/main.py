@@ -6,8 +6,7 @@ import json
 def generate_next_token(
         llm: Small_LLM_Model,
         tokens: list[int],
-        response_tokens: list[int]
-        ) -> list[int]:
+        ) -> int:
     possible_token = llm.get_logits_from_input_ids(tokens)
     max_value = max(possible_token)
     next_token = [
@@ -16,22 +15,25 @@ def generate_next_token(
         if max_value == elem
     ]
     tokens.append(next_token[0])
-    response_tokens.append(next_token[0])
-    return tokens
+    return next_token[0]
 
 
-def check_for_ended_response(llm: Small_LLM_Model, tokens: list[int]) -> bool:
-    response: str = llm.decode(tokens)
+def check_for_ended_response(response: str) -> bool:
     accolades: list = []
     for char in response:
         if char == '[' or char == '{':
             accolades.append(char)
         if char == ']' or char == '}':
-            if accolades[-1] == char:
+            if (
+                (accolades[-1] == '[' and char == ']')
+                or (accolades[-1] == '{' and char == '}')
+            ):
                 accolades.pop(-1)
+            else:
+                return False
     if len(accolades) < 1:
-        return True
-    return False
+        return False
+    return True
 
 
 def get_functions_json(filename: str = "functions_definition.json") -> str:
@@ -78,13 +80,13 @@ def create_prompt(prompt: str, available_functions: str) -> str:
             "The Answer: {",
             " \"prompt\": \"",
             prompt,
-            "\", \"name\": "
+            "\", \"name\": \""
         ]),
         "".join([
             "{",
             " \"prompt\": \"",
             prompt,
-            "\", \"name\": "
+            "\", \"name\": \""
         ])
         )
 
@@ -95,9 +97,9 @@ def main():
     available_functions = get_functions_json()
     prompts = get_prompts_json()
     jarvis = Small_LLM_Model()
-    response: str = ""
     for user_prompt in prompts:
         try:
+            response: str = ""
             prompt: str = ""
             (prompt, response) = create_prompt(
                 user_prompt["prompt"],
@@ -105,9 +107,13 @@ def main():
                 )
             tokens = jarvis.encode(prompt)
             converted_list = list(tokens[0])
-            while check_for_ended_response():
-                generate_next_token(jarvis, converted_list)
-                print(jarvis.decode(converted_list))
+            while check_for_ended_response(response):
+                response = "".join([
+                    response,
+                    jarvis.decode(generate_next_token(jarvis, converted_list))]
+                )
+                # TODO si le dernier caractere de response est '"' ou '",' etc ajouter en dur le prochain champ pour accelerer la generation de la reponse
+                print(response)
         except (
             FileNotFoundError,
             FileExistsError,

@@ -6,7 +6,7 @@ import json
 def generate_next_token(
         llm: Small_LLM_Model,
         tokens: list[int],
-        ) -> int:
+) -> int:
     possible_token = llm.get_logits_from_input_ids(tokens)
     max_value = max(possible_token)
     next_token = [
@@ -53,7 +53,7 @@ def get_functions_json(filename: str = "functions_definition.json") -> str:
 
 def get_prompts_json(
         filename: str = "function_calling_tests.json"
-        ) -> list[dict]:
+) -> list[dict]:
     try:
         is_valid_filename(filename)
         with open(
@@ -65,7 +65,7 @@ def get_prompts_json(
         print(e)
 
 
-def create_prompt(prompt: str, available_functions: str) -> str:
+def create_prompt(prompt: str, available_functions: str) -> tuple[str, str]:
     if len(prompt) < 1:
         raise ValueError("Error the prompt cannot be empty")
     return (
@@ -88,7 +88,7 @@ def create_prompt(prompt: str, available_functions: str) -> str:
             prompt,
             "\", \"name\": \""
         ])
-        )
+    )
 
 
 def main():
@@ -104,7 +104,7 @@ def main():
             (prompt, response) = create_prompt(
                 user_prompt["prompt"],
                 str(available_functions)
-                )
+            )
             tokens = jarvis.encode(prompt)
             converted_list = list(tokens[0])
             while check_for_ended_response(response):
@@ -113,13 +113,13 @@ def main():
                     jarvis.decode(generate_next_token(jarvis, converted_list))]
                 )
                 # TODO si le dernier caractere de response est '"' ou '",' etc ajouter en dur le prochain champ pour accelerer la generation de la reponse
-                print(response)
+            print(response)
         except (
             FileNotFoundError,
             FileExistsError,
             ValueError,
             Exception
-                )as e:
+        )as e:
             print(e)
 
 

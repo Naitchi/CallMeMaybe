@@ -71,18 +71,43 @@ def get_prompts_json(
         print(e)
 
 
+def sanitize_llm_json_response(raw_response: str) -> str:
+    if len(raw_response) < 1:
+        return raw_response
+    return re.sub(r'\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})', r'\\\\', raw_response)
+
+
+def convert_ints_to_floats(value):
+    if type(value) is int:
+        return float(value)
+    if isinstance(value, list):
+        return [convert_ints_to_floats(item) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: convert_ints_to_floats(item)
+            for key, item in value.items()
+        }
+    return value
+
+
 def make_output(
         anwsers: list[str],
         filename: str = "function_calling_results.json"
-        ) -> bool:
+) -> bool:
     try:
         is_valid_filename(filename)
         with open(
             f"../data/output/{filename}",
             "w"
         ) as file:
+            for answer in anwsers:
+                print(answer)
+                json.loads(answer)
             json.dump(
-                [json.loads(answer) for answer in anwsers],
+                [
+                    convert_ints_to_floats(json.loads(answer))
+                    for answer in anwsers
+                ],
                 file,
                 indent=2
             )

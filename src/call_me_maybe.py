@@ -1,5 +1,10 @@
 from llm_sdk import Small_LLM_Model
-from parsing import get_functions_json, get_prompts_json, make_output
+from parsing import (
+    get_functions_json,
+    get_prompts_json,
+    make_output,
+    sanitize_llm_json_response,
+)
 
 
 def generate_next_token(
@@ -38,6 +43,7 @@ def check_for_ended_response(response: str) -> bool:
 def create_prompt(prompt: str, available_functions: str) -> tuple[str, str]:
     if len(prompt) < 1:
         raise ValueError("Error the prompt cannot be empty")
+    prompt = prompt.replace('"', "\\\"")
     return (
         "".join([
             "With this prompt: \"",
@@ -84,7 +90,7 @@ def main():
                     jarvis.decode(generate_next_token(jarvis, converted_list))]
                 )
                 # TODO si le dernier caractere de response est '"' ou '",' etc ajouter en dur le prochain champ pour accelerer la generation de la reponse
-            print(response)
+            response = sanitize_llm_json_response(response)
             anwsers.append(response)
         except (
             FileNotFoundError,

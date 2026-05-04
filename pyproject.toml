@@ -1,8 +1,18 @@
 [project]
 name = "Call-Me-Maybe"
 version = "0.1.0"
-description = "CallMeMaybe root project (adds pydantic dependency)"
+description = "CallMeMaybe root project"
 requires-python = ">=3.10"
 dependencies = [
 	"pydantic>=2.0,<3",
+	"torch>=2.0.0",
+	"transformers>=4.40.0",
+	"huggingface-hub>=0.20.0",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["llm_sdk"]

@@ -1,6 +1,7 @@
 import re
 from pydantic import BaseModel, Field
 from enum import Enum
+import json
 
 
 class AllowedType(str, Enum):
@@ -40,3 +41,52 @@ def is_valid_filename(filename: str) -> None:
             r"Json name invalide. Please rename it in something like: "
             r"[a-zA-Z0-9_-]+\.json"
         )
+
+
+def get_functions_json(filename: str = "functions_definition.json") -> str:
+    try:
+        is_valid_filename(filename)
+        with open(
+            f"../data/input/{filename}",
+            "r"
+        ) as original:
+            available_functions = json.load(original)
+            check_json_functions(available_functions)
+            return available_functions
+    except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
+        print(e)
+
+
+def get_prompts_json(
+        filename: str = "function_calling_tests.json"
+) -> list[dict]:
+    try:
+        is_valid_filename(filename)
+        with open(
+            f"../data/input/{filename}",
+            "r"
+        ) as original:
+            return json.load(original)
+    except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
+        print(e)
+
+
+def make_output(
+        anwsers: list[str],
+        filename: str = "function_calling_results.json"
+        ) -> bool:
+    try:
+        is_valid_filename(filename)
+        with open(
+            f"../data/output/{filename}",
+            "w"
+        ) as file:
+            json.dump(
+                [json.loads(answer) for answer in anwsers],
+                file,
+                indent=2
+            )
+            return True
+    except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
+        print(e)
+        return False

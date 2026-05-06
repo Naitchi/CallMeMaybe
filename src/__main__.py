@@ -100,7 +100,8 @@ def constained_decoding(
 
 
 def main() -> None:
-    # TODO faire pour qu'on recupere les args et les passe dans
+    # TODO faire pour qu'on recupere les args je sais pas comment je change
+    # les chemins pas par default et les passe dans
     # get_functions_json et get_prompt_json (changer pour verifier les donnees
     # avant et pas dans les fonctions comme maintenant(sale))
     available_functions: list[dict[str, Any]] = get_functions_json()

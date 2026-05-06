@@ -50,11 +50,8 @@ def get_functions_json(
 ) -> list[dict[str, Any]]:
     try:
         is_valid_filename(filename)
-        with open(
-            filename,
-            "r"
-        ) as original:
-            available_functions: list[dict[str, Any]] = json.load(original)
+        with open(filename, "r") as file:
+            available_functions: list[dict[str, Any]] = json.load(file)
             check_json_functions(available_functions)
             return available_functions
     except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
@@ -65,11 +62,8 @@ def get_functions_json(
 def get_prompts_json(filename: str) -> list[dict[str, Any]]:
     try:
         is_valid_filename(filename)
-        with open(
-            filename,
-            "r"
-        ) as original:
-            prompts: list[dict[str, Any]] = json.load(original)
+        with open(filename, "r") as file:
+            prompts: list[dict[str, Any]] = json.load(file)
             return prompts
     except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
         print(e)
@@ -98,10 +92,7 @@ def convert_ints_to_floats(value: Any) -> Any:
 def make_output(anwsers: list[str], filename: str) -> bool:
     try:
         is_valid_filename(filename)
-        with open(
-            f"./data/output/{filename}",
-            "w"
-        ) as file:
+        with open(filename, "w") as file:
             result = []
             for answer in anwsers:
                 print(answer)

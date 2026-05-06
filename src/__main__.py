@@ -1,5 +1,6 @@
 import numpy as np
 import time
+from typing import Any
 
 from llm_sdk import Small_LLM_Model
 from .parsing import (
@@ -21,7 +22,7 @@ def generate_next_token(llm: Small_LLM_Model, tokens: list[int]) -> int:
 
 
 def check_for_ended_response(response: str) -> bool:
-    accolades: list = []
+    accolades: list[str] = []
     for char in response:
         if char == '[' or char == '{':
             accolades.append(char)
@@ -40,7 +41,7 @@ def check_for_ended_response(response: str) -> bool:
 
 def get_function_names(
         llm: Small_LLM_Model,
-        available_func: list[dict]
+        available_func: list[dict[str, Any]]
         ) -> list[int]:
     token_names: list[int] = []
     for func in available_func:
@@ -102,10 +103,10 @@ def main() -> None:
     # TODO faire pour qu'on recupere les args et les passe dans
     # get_functions_json et get_prompt_json (changer pour verifier les donnees
     # avant et pas dans les fonctions comme maintenant(sale))
-    available_functions: list[dict] = get_functions_json()
+    available_functions: list[dict[str, Any]] = get_functions_json()
     for funct in available_functions:
         del funct["returns"]
-    prompts: list[dict] = get_prompts_json()
+    prompts: list[dict[str, Any]] = get_prompts_json()
     jarvis: Small_LLM_Model = Small_LLM_Model()
     anwsers: list[str] = []
     start = time.perf_counter()

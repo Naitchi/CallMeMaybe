@@ -10,7 +10,8 @@ dependencies = [
 	"huggingface-hub>=0.20.0",
 	"flake8",
 	"mypy",
-	"numpy"
+	"numpy",
+	"argparse"
 ]
 
 [build-system]

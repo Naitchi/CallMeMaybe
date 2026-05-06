@@ -1,4 +1,5 @@
 import numpy as np
+import argparse
 import time
 from typing import Any
 
@@ -100,19 +101,43 @@ def constained_decoding(
 
 
 def main() -> None:
-    # TODO faire pour qu'on recupere les args je sais pas comment je change
-    # les chemins pas par default et les passe dans
-    # get_functions_json et get_prompt_json (changer pour verifier les donnees
+    parser = argparse.ArgumentParser(description="CallMeMaybe")
+
+    parser.add_argument(
+        "--functions_definition",
+        type=str,
+        default="./data/input/functions_definition.json",
+        help="Input file for functions"
+    )
+    parser.add_argument(
+        "--input",
+        type=str,
+        default="./data/input/function_calling_tests.json",
+        help="Input file for prompt list"
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="./data/input/function_calling_results.json",
+        help="Output file for results"
+    )
+    args = parser.parse_args()
+    # TODO changer pour verifier les chemins et les donnees
     # avant et pas dans les fonctions comme maintenant(sale))
-    available_functions: list[dict[str, Any]] = get_functions_json()
+    available_functions: list[dict[str, Any]] = get_functions_json(
+        args.functions_definition
+        )
     for funct in available_functions:
         del funct["returns"]
-    prompts: list[dict[str, Any]] = get_prompts_json()
+    prompts: list[dict[str, Any]] = get_prompts_json(args.input)
     jarvis: Small_LLM_Model = Small_LLM_Model()
     anwsers: list[str] = []
     start = time.perf_counter()
     tokens_func_name: list[int] = (
-        get_function_names(jarvis, available_functions)
+        get_function_names(
+            jarvis,
+            available_functions,
+            )
         )
     for user_prompt in prompts:
         try:
@@ -164,7 +189,7 @@ def main() -> None:
             print(e)
     try:
         print(time.perf_counter() - start)
-        make_output(anwsers)
+        make_output(anwsers, args.output)
     except (Exception)as e:
         print(e)
 

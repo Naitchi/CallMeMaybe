@@ -37,7 +37,7 @@ def check_json_functions(list_function_dict: list[dict[str, Any]]) -> None:
 
 
 def is_valid_filename(filename: str) -> None:
-    pattern: str = r'^[a-zA-Z0-9_-]+\.json$'
+    pattern: str = r'^[-a-zA-Z0-9_./]+\.json$'
     if not re.fullmatch(pattern, filename):
         raise ValueError(
             r"Json name invalide. Please rename it in something like: "
@@ -51,7 +51,7 @@ def get_functions_json(
     try:
         is_valid_filename(filename)
         with open(
-            f"./data/input/{filename}",
+            filename,
             "r"
         ) as original:
             available_functions: list[dict[str, Any]] = json.load(original)
@@ -62,13 +62,11 @@ def get_functions_json(
         return []
 
 
-def get_prompts_json(
-        filename: str = "function_calling_tests.json"
-) -> list[dict[str, Any]]:
+def get_prompts_json(filename: str) -> list[dict[str, Any]]:
     try:
         is_valid_filename(filename)
         with open(
-            f"./data/input/{filename}",
+            filename,
             "r"
         ) as original:
             prompts: list[dict[str, Any]] = json.load(original)
@@ -97,27 +95,21 @@ def convert_ints_to_floats(value: Any) -> Any:
     return value
 
 
-def make_output(
-        anwsers: list[str],
-        filename: str = "function_calling_results.json"
-) -> bool:
+def make_output(anwsers: list[str], filename: str) -> bool:
     try:
         is_valid_filename(filename)
         with open(
             f"./data/output/{filename}",
             "w"
         ) as file:
+            result = []
             for answer in anwsers:
                 print(answer)
-                json.loads(answer)
-            json.dump(
-                [
-                    convert_ints_to_floats(json.loads(answer))
-                    for answer in anwsers
-                ],
-                file,
-                indent=2
-            )
+                try:
+                    result.append(convert_ints_to_floats(json.loads(answer)))
+                except Exception:
+                    result.append({})
+            json.dump(result, file, indent=2)
             return True
     except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
         print(e)

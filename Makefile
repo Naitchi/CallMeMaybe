@@ -1,22 +1,18 @@
 PYTHON_SYS := python3
 VENV := .venv
 PYTHON := $(VENV)/bin/python
-UV := $(VENV)/bin/uv
-MAIN_SCRIPT := src/main.py
+UV := uv
+MAIN_DIRECTORY := src
 
-.PHONY: install run debug clean lint lint-strict
 
 install:
-	$(PYTHON_SYS) -m venv $(VENV)
-	$(VENV)/bin/pip install --upgrade pip
-	$(VENV)/bin/pip install uv
-	$(UV) pip install --python $(PYTHON) -e . flake8 mypy
+	$(UV) sync
 
-run:
-	$(UV) run --python $(PYTHON) python $(MAIN_SCRIPT)
+run: install
+	$(UV) run python -m $(MAIN_DIRECTORY)
 
 debug:
-	$(UV) run --python $(PYTHON) python -m pdb $(MAIN_SCRIPT)
+	$(UV) run python -m pdb $(MAIN_DIRECTORY)/__main__.py
 
 clean:
 	rm -rf $(VENV) __pycache__ .mypy_cache .pytest_cache .ruff_cache .coverage
@@ -35,3 +31,5 @@ lint:
 lint-strict:
 	$(UV) run --python $(PYTHON) flake8 .
 	$(UV) run --python $(PYTHON) mypy . --strict
+
+.PHONY: install run debug clean lint lint-strict

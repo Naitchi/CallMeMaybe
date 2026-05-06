@@ -47,7 +47,7 @@ def get_functions_json(filename: str = "functions_definition.json") -> str:
     try:
         is_valid_filename(filename)
         with open(
-            f"../data/input/{filename}",
+            f"./data/input/{filename}",
             "r"
         ) as original:
             available_functions = json.load(original)
@@ -63,7 +63,7 @@ def get_prompts_json(
     try:
         is_valid_filename(filename)
         with open(
-            f"../data/input/{filename}",
+            f"./data/input/{filename}",
             "r"
         ) as original:
             return json.load(original)
@@ -97,7 +97,7 @@ def make_output(
     try:
         is_valid_filename(filename)
         with open(
-            f"../data/output/{filename}",
+            f"./data/output/{filename}",
             "w"
         ) as file:
             for answer in anwsers:

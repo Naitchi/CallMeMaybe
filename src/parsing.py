@@ -93,13 +93,13 @@ def make_output(anwsers: list[str], filename: str) -> bool:
     try:
         is_valid_filename(filename)
         with open(filename, "w") as file:
-            result = []
+            result: list[Any] = []
             for answer in anwsers:
                 print(answer)
                 try:
                     result.append(convert_ints_to_floats(json.loads(answer)))
                 except Exception:
-                    result.append({})
+                    result.append({"prompt": "", "name": "", "parameters": {}})
             json.dump(result, file, indent=2)
             return True
     except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:

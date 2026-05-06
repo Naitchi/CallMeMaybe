@@ -25,11 +25,11 @@ clean:
 	find . -type f -name '*.pyd' -delete
 
 lint:
-	$(UV) run --python $(PYTHON) flake8 .
-	$(UV) run --python $(PYTHON) mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	$(UV) run --python $(PYTHON) flake8 src 
+	$(UV) run --python $(PYTHON) mypy src --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
 lint-strict:
-	$(UV) run --python $(PYTHON) flake8 .
-	$(UV) run --python $(PYTHON) mypy . --strict
+	$(UV) run --python $(PYTHON) flake8 src
+	$(UV) run --python $(PYTHON) mypy src --strict
 
 .PHONY: install run debug clean lint lint-strict

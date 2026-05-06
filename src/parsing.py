@@ -1,7 +1,9 @@
-import re
-from pydantic import BaseModel, Field
-from enum import Enum
 import json
+import re
+from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 
 class AllowedType(str, Enum):
@@ -29,7 +31,7 @@ class PromptDefinition(BaseModel):
     prompt: str = Field()
 
 
-def check_json_functions(list_function_dict: list[dict]) -> None:
+def check_json_functions(list_function_dict: list[dict[str, Any]]) -> None:
     for fx in list_function_dict:
         FunctionDefinition(**fx)
 
@@ -43,32 +45,37 @@ def is_valid_filename(filename: str) -> None:
         )
 
 
-def get_functions_json(filename: str = "functions_definition.json") -> str:
+def get_functions_json(
+    filename: str = "functions_definition.json",
+) -> list[dict[str, Any]]:
     try:
         is_valid_filename(filename)
         with open(
             f"./data/input/{filename}",
             "r"
         ) as original:
-            available_functions = json.load(original)
+            available_functions: list[dict[str, Any]] = json.load(original)
             check_json_functions(available_functions)
             return available_functions
     except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
         print(e)
+        return []
 
 
 def get_prompts_json(
         filename: str = "function_calling_tests.json"
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     try:
         is_valid_filename(filename)
         with open(
             f"./data/input/{filename}",
             "r"
         ) as original:
-            return json.load(original)
+            prompts: list[dict[str, Any]] = json.load(original)
+            return prompts
     except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
         print(e)
+        return []
 
 
 def sanitize_llm_json_response(raw_response: str) -> str:
@@ -77,7 +84,7 @@ def sanitize_llm_json_response(raw_response: str) -> str:
     return re.sub(r'\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})', r'\\\\', raw_response)
 
 
-def convert_ints_to_floats(value):
+def convert_ints_to_floats(value: Any) -> Any:
     if type(value) is int:
         return float(value)
     if isinstance(value, list):

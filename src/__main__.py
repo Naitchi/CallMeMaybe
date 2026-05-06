@@ -1,3 +1,6 @@
+import numpy as np
+import time
+
 from llm_sdk import Small_LLM_Model
 from .parsing import (
     get_functions_json,
@@ -5,12 +8,13 @@ from .parsing import (
     make_output,
     sanitize_llm_json_response,
 )
-import time
-import numpy as np
 
 
 def generate_next_token(llm: Small_LLM_Model, tokens: list[int]) -> int:
-    possible_token: np.ndarray = llm.get_logits_from_input_ids(tokens)
+    possible_token = np.asarray(
+        llm.get_logits_from_input_ids(tokens),
+        dtype=float,
+    )
     next_token: int = int(np.argmax(possible_token))
     tokens.append(next_token)
     return next_token
@@ -78,20 +82,23 @@ def constained_decoding(
         tokens: list[int],
         tokens_func_name: list[int]
         ) -> int:
-    possible_token: np.ndarray = llm.get_logits_from_input_ids(tokens)
-    constrained_token: np.ndarray = np.full_like(
+    possible_token = np.asarray(
+        llm.get_logits_from_input_ids(tokens),
+        dtype=float,
+    )
+    constrained_token = np.full_like(
         possible_token,
         fill_value=-np.inf,
-        dtype=float
-        )
+        dtype=float,
+    )
     for token in tokens_func_name:
         constrained_token[token] = possible_token[token]
-    next_token: int = np.argmax(constrained_token)
+    next_token: int = int(np.argmax(constrained_token))
     tokens.append(next_token)
     return next_token
 
 
-def main():
+def main() -> None:
     # TODO faire pour qu'on recupere les args et les passe dans
     # get_functions_json et get_prompt_json (changer pour verifier les donnees
     # avant et pas dans les fonctions comme maintenant(sale))
@@ -119,14 +126,14 @@ def main():
             while generate_name:
                 response = "".join([
                     response,
-                    jarvis.decode(
-                        constained_decoding(
-                            jarvis,
-                            converted_list,
-                            tokens_func_name)
-                        )
-                    ]
-                )
+                    jarvis.decode([
+                            constained_decoding(
+                                jarvis,
+                                converted_list,
+                                tokens_func_name
+                            )
+                        ])
+                    ])
                 if response.count('"') % 2 < 1:
                     generate_name = False
                     response = "".join([response, '\"parameters\":{ '])
@@ -135,9 +142,13 @@ def main():
                     )
             while check_for_ended_response(response):
                 response = "".join([
-                    response,
-                    jarvis.decode(generate_next_token(jarvis, converted_list))]
-                )
+                        response,
+                        jarvis.decode(
+                            [
+                                generate_next_token(jarvis, converted_list)
+                            ]
+                        )
+                    ])
             response = sanitize_llm_json_response(response)
             anwsers.append(response)
             print(response)

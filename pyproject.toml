@@ -11,7 +11,8 @@ dependencies = [
 	"flake8",
 	"mypy",
 	"numpy",
-	"argparse"
+	"argparse",
+	"accelerate"
 ]
 
 [build-system]

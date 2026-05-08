@@ -118,12 +118,10 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=str,
-        default="./data/input/function_calling_results.json",
+        default="./data/output/function_calling_results.json",
         help="Output file for results"
     )
     args = parser.parse_args()
-    # TODO changer pour verifier les chemins et les donnees
-    # avant et pas dans les fonctions comme maintenant(sale))
     available_functions: list[dict[str, Any]] = get_functions_json(
         args.functions_definition
         )

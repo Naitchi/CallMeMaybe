@@ -1,9 +1,12 @@
 import json
+from pathlib import Path
 import re
+import sys
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class AllowedType(str, Enum):
@@ -28,12 +31,14 @@ class FunctionDefinition(BaseModel):
 
 
 class PromptDefinition(BaseModel):
-    prompt: str = Field()
+    prompt: str = Field(strict=True, min_length=1)
 
-
-def check_json_functions(list_function_dict: list[dict[str, Any]]) -> None:
-    for fx in list_function_dict:
-        FunctionDefinition(**fx)
+    @field_validator("prompt")
+    @classmethod
+    def prompt_must_not_be_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("prompt must not be empty or whitespace only")
+        return value
 
 
 def is_valid_filename(filename: str) -> None:
@@ -45,6 +50,16 @@ def is_valid_filename(filename: str) -> None:
         )
 
 
+def check_json_functions(list_function_dict: list[dict[str, Any]]) -> None:
+    for fx in list_function_dict:
+        FunctionDefinition(**fx)
+
+
+def check_json_prompts(prompts: list[dict[str, Any]]) -> None:
+    for prompt in prompts:
+        PromptDefinition(**prompt)
+
+
 def get_functions_json(
     filename: str = "functions_definition.json",
 ) -> list[dict[str, Any]]:
@@ -53,10 +68,14 @@ def get_functions_json(
         with open(filename, "r") as file:
             available_functions: list[dict[str, Any]] = json.load(file)
             check_json_functions(available_functions)
+            if len(available_functions) < 1:
+                raise ValueError("No functions available for the llm.")
             return available_functions
-    except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
-        print(e)
-        return []
+    except (FileNotFoundError, FileExistsError, ValueError, Exception):
+        print("Error in the Functions file, you need a none-empty correct",
+              "json file with object with the proprieties 'name', 'description',",
+              "'parameters' and 'returns'")
+        sys.exit()
 
 
 def get_prompts_json(filename: str) -> list[dict[str, Any]]:
@@ -64,10 +83,14 @@ def get_prompts_json(filename: str) -> list[dict[str, Any]]:
         is_valid_filename(filename)
         with open(filename, "r") as file:
             prompts: list[dict[str, Any]] = json.load(file)
+            check_json_prompts(prompts)
+            if len(prompts) < 1:
+                raise ValueError("No prompt available for the llm.")
             return prompts
-    except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
-        print(e)
-        return []
+    except (FileNotFoundError, FileExistsError, ValueError, Exception):
+        print("Error in the Prompts file, you need a none-empty correct",
+              "json file with object with a none empty propriety 'prompt'")
+        sys.exit()
 
 
 def sanitize_llm_json_response(raw_response: str) -> str:
@@ -92,6 +115,8 @@ def convert_ints_to_floats(value: Any) -> Any:
 def make_output(anwsers: list[str], filename: str) -> bool:
     try:
         is_valid_filename(filename)
+        output = Path(filename)
+        output.parent.mkdir(parents=True, exist_ok=True)
         with open(filename, "w") as file:
             result: list[Any] = []
             for answer in anwsers:

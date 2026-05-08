@@ -73,8 +73,8 @@ def get_functions_json(
             return available_functions
     except (FileNotFoundError, FileExistsError, ValueError, Exception):
         print("Error in the Functions file, you need a none-empty correct",
-              "json file with object with the proprieties 'name', 'description',",
-              "'parameters' and 'returns'")
+              "json file with object with the proprieties 'name', ",
+              "'description', 'parameters' and 'returns'")
         sys.exit()
 
 

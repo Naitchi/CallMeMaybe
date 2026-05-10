@@ -40,7 +40,10 @@ class CallMeMaybeApp:
             return False
         return True
 
-    def get_function_names(self, available_func: list[dict[str, Any]]) -> list[int]:
+    def get_function_names(
+            self,
+            available_func: list[dict[str, Any]]
+            ) -> list[int]:
         token_names: list[int] = []
         for func in available_func:
             token_names.extend(
@@ -49,7 +52,11 @@ class CallMeMaybeApp:
         token_names.append(497)
         return list(set(token_names))
 
-    def create_prompt(self, prompt: str, available_functions: str) -> tuple[str, str]:
+    def create_prompt(
+            self,
+            prompt: str,
+            available_functions: str
+            ) -> tuple[str, str]:
         if len(prompt) < 1:
             raise ValueError("Error the prompt cannot be empty")
         prompt = prompt.replace('"', "\\\"")
@@ -74,7 +81,11 @@ class CallMeMaybeApp:
             ])
         )
 
-    def constained_decoding(self, tokens: list[int], tokens_func_name: list[int]) -> int:
+    def constained_decoding(
+            self,
+            tokens: list[int],
+            tokens_func_name: list[int]
+            ) -> int:
         possible_token = np.asarray(
             self.model.get_logits_from_input_ids(tokens),
             dtype=float,
@@ -112,15 +123,21 @@ class CallMeMaybeApp:
             help="Output file for results"
         )
         args = parser.parse_args()
-        available_functions: list[dict[str, Any]] = self.file_service.get_functions_json(
-            args.functions_definition
+        available_functions: list[dict[str, Any]] = (
+            self.file_service.get_functions_json(
+                args.functions_definition
+            )
         )
         for funct in available_functions:
             del funct["returns"]
-        prompts: list[dict[str, Any]] = self.file_service.get_prompts_json(args.input)
+        prompts: list[dict[str, Any]] = self.file_service.get_prompts_json(
+            args.input
+        )
         answers: list[str] = []
         start = time.perf_counter()
-        tokens_func_name: list[int] = self.get_function_names(available_functions)
+        tokens_func_name: list[int] = self.get_function_names(
+            available_functions
+        )
         for user_prompt in prompts:
             try:
                 response: str = ""
@@ -157,7 +174,9 @@ class CallMeMaybeApp:
                             ]
                         )
                     ])
-                response = self.file_service.sanitize_llm_json_response(response)
+                response = self.file_service.sanitize_llm_json_response(
+                    response
+                )
                 answers.append(response)
                 print(response)
                 print(time.perf_counter() - start)

@@ -28,6 +28,16 @@ class FunctionDefinition(BaseModel):
     parameters: dict[str, TypedField] = Field(strict=True, min_length=1)
     returns: TypedField
 
+    @field_validator("parameters")
+    @classmethod
+    def parameter_names_must_not_be_blank(
+        cls, value: dict[str, TypedField]
+    ) -> dict[str, TypedField]:
+        for key in value:
+            if not key or not key.strip():
+                raise ValueError("parameter names must not be null or blank")
+        return value
+
 
 class PromptDefinition(BaseModel):
     prompt: str = Field(strict=True, min_length=1)
@@ -50,7 +60,10 @@ class JSONFileService:
                 r"[a-zA-Z0-9_-]+\.json"
             )
 
-    def _check_json_functions(self, list_function_dict: list[dict[str, Any]]) -> None:
+    def _check_json_functions(
+            self,
+            list_function_dict: list[dict[str, Any]]
+            ) -> None:
         for fx in list_function_dict:
             FunctionDefinition(**fx)
 
@@ -97,7 +110,11 @@ class JSONFileService:
     def sanitize_llm_json_response(self, raw_response: str) -> str:
         if len(raw_response) < 1:
             return raw_response
-        return re.sub(r'\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})', r'\\\\', raw_response)
+        return re.sub(
+            r'\\(?!["\\/bfnrt]|u[0-9a-fA-F]{4})',
+            r'\\\\',
+            raw_response
+            )
 
     def convert_ints_to_floats(self, value: Any) -> Any:
         if type(value) is int:
@@ -125,9 +142,16 @@ class JSONFileService:
                             self.convert_ints_to_floats(json.loads(answer))
                         )
                     except Exception:
-                        result.append({"prompt": "", "name": "", "parameters": {}})
+                        result.append(
+                            {"prompt": "", "name": "", "parameters": {}}
+                            )
                 json.dump(result, file, indent=2)
                 return True
-        except (FileNotFoundError, FileExistsError, ValueError, Exception) as e:
+        except (
+                FileNotFoundError,
+                FileExistsError,
+                ValueError,
+                Exception
+                ) as e:
             print(e)
             return False

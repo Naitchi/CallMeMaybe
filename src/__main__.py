@@ -88,6 +88,18 @@ class CallMeMaybeApp:
             prompt: str,
             available_functions: str
             ) -> tuple[str, str]:
+        """Create the full prompt and response prefix for the LLM.
+        Args:
+            prompt: The user prompt to include in the instruction.
+            available_functions: String representation of available
+                functions.
+        Returns:
+            A tuple containing:
+            - The full instruction prompt for the model.
+            - The response prefix to initialize generation.
+        Raises:
+            ValueError: If the prompt is empty.
+        """
         if len(prompt) < 1:
             raise ValueError("Error the prompt cannot be empty")
         prompt = prompt.replace('"', "\\\"")

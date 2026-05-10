@@ -8,11 +8,26 @@ from .parsing import JSONFileService
 
 
 class CallMeMaybeApp:
+    """Main application for function calling with a small LLM model.
+    This application processes prompts and uses constrained decoding to
+    generate JSON responses that call appropriate functions based on the
+    available function definitions.
+    Attributes:
+        file_service: Service for handling JSON file I/O operations.
+        model: The small LLM model used for generating responses.
+    """
     def __init__(self) -> None:
+        """Initialize the CallMeMaybeApp with file service and LLM model."""
         self.file_service = JSONFileService()
         self.model = Small_LLM_Model()
 
     def generate_next_token(self, tokens: list[int]) -> int:
+        """Generate the next token based on logits without constraints.
+        Args:
+            tokens: List of token IDs to extend with the next token.
+        Returns:
+            The token ID with the highest logit value.
+        """
         possible_token = np.asarray(
             self.model.get_logits_from_input_ids(tokens),
             dtype=float,
@@ -22,6 +37,15 @@ class CallMeMaybeApp:
         return next_token
 
     def check_for_ended_response(self, response: str) -> bool:
+        """Check if a JSON response has unclosed brackets or braces.
+        Validates that all opening brackets/braces have matching closing ones.
+        Returns True if there are still unclosed brackets or braces, indicating
+        the response needs to continue being generated.
+        Args:
+            response: The JSON response string to check.
+        Returns:
+            True if there are unclosed brackets/braces, False otherwise.
+        """
         accolades: list[str] = []
         for char in response:
             if char == '[' or char == '{':
@@ -44,6 +68,13 @@ class CallMeMaybeApp:
             self,
             available_func: list[dict[str, Any]]
             ) -> list[int]:
+        """Extract and tokenize function names for constrained decoding.
+        Args:
+            available_func: List of function definition dictionaries.
+        Returns:
+            A set of unique token IDs that make up the function names,
+            including token 497 (likely a delimiter or special token).
+        """
         token_names: list[int] = []
         for func in available_func:
             token_names.extend(
@@ -86,6 +117,16 @@ class CallMeMaybeApp:
             tokens: list[int],
             tokens_func_name: list[int]
             ) -> int:
+        """Generate next token constrained to function name tokens.
+        Uses constrained decoding to ensure generated tokens correspond
+        only to tokens that are part of available function names.
+        Args:
+            tokens: List of token IDs to extend with the next
+                constrained token.
+            tokens_func_name: List of valid token IDs for function names.
+        Returns:
+            The token ID with the highest logit among the constrained set.
+        """
         possible_token = np.asarray(
             self.model.get_logits_from_input_ids(tokens),
             dtype=float,
@@ -102,6 +143,12 @@ class CallMeMaybeApp:
         return next_token
 
     def run(self) -> None:
+        """Main execution method for the function calling workflow.
+        Loads function definitions and prompts, performs constrained
+        generation to produce JSON responses with function calls, and
+        writes results to output. Processes command-line arguments for
+        file paths and handles exceptions during processing.
+        """
         parser = argparse.ArgumentParser(description="CallMeMaybe")
 
         parser.add_argument(
@@ -195,6 +242,7 @@ class CallMeMaybeApp:
 
 
 def main() -> None:
+    """Entry point for the CallMeMaybe application."""
     CallMeMaybeApp().run()
 
 
